@@ -1,6 +1,6 @@
 # OpenAI Agent for Activity Suggestions
 
-This project implements an AI agent that suggests activities based on location, weather, and local events. It's an improved version of the tutorial found at [OpenAI Cookbook: How to build an agent with the Node.js SDK](https://cookbook.openai.com/examples/how_to_build_an_agent_with_the_node_sdk).
+This project implements an AI agent that suggests activities based on location, weather, and local events. It's an improved version of the tutorial found at [OpenAI Cookbook: How to build an agent with the Node.js SDK](https://cookbook.openai.com/examples/how_to_build_an_agent_with_the_node_sdk). It integrates the TICKETMASTER API for finding local events. 
 
 ## Features
 
