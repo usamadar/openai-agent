@@ -15,7 +15,30 @@ const openai = new OpenAI({
           'User-Agent': 'curl/7.64.1'
         }
       });
-      return response.data;
+      console.log("Detected location:", response.data.city);
+      
+      // Ask user to confirm or correct the location
+      const readline = require('readline').createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+
+      return new Promise((resolve) => {
+        readline.question(`Is ${response.data.city} your correct location? (Y/N) `, async (answer) => {
+          if (answer.toLowerCase() === 'y') {
+            readline.close();
+            resolve(response.data);
+          } else {
+            const manualCity = await new Promise((res) => {
+              readline.question('Please enter your correct city: ', (city) => {
+                readline.close();
+                res(city);
+              });
+            });
+            resolve({ ...response.data, city: manualCity });
+          }
+        });
+      });
     } catch (error) {
       console.error("Error fetching location:", error.message);
       // Fallback to alternative service
@@ -61,6 +84,28 @@ const openai = new OpenAI({
     } catch (error) {
       console.error("Error fetching events:", error.response ? error.response.data : error.message);
       return [];
+    }
+  }
+
+  async function getTimeBasedSuggestions(time) {
+    const date = new Date(time);
+    const hour = date.getHours();
+    const localTime = date.toLocaleTimeString();
+  
+    console.log(`Current time: ${localTime}, Hour: ${hour}`);
+
+    if (hour >= 5 && hour < 12) {
+      console.log("Suggesting morning activities");
+      return "morning activities (5 AM to 11:59 AM)";
+    } else if (hour >= 12 && hour < 17) {
+      console.log("Suggesting afternoon activities");
+      return "afternoon activities (12 PM to 4:59 PM)";
+    } else if (hour >= 17 && hour < 21) {
+      console.log("Suggesting evening activities");
+      return "evening activities (5 PM to 8:59 PM)";
+    } else {
+      console.log("Suggesting night activities");
+      return "night activities (9 PM to 4:59 AM)";
     }
   }
 
@@ -120,25 +165,50 @@ const openai = new OpenAI({
         }
       }
     },
+    {
+      type: "function",
+      function: {
+        name: "getTimeBasedSuggestions",
+        description: "Get activity suggestions based on the time of day",
+        parameters: {
+          type: "object",
+          properties: {
+            time: {
+              type: "string",
+              description: "The current time in ISO 8601 format"
+            }
+          },
+          required: ["time"]
+        }
+      }
+    },
   ];
   const messages = [
     {
       role: "system",
       content:
-        "You are a helpful assistant. Only use the functions you have been provided with.",
+        "You are a helpful assistant. You can suggest activities based on location, weather and time of day. Only use the functions you have been provided with.",
     },
   ];
 
   const availableTools = {
     getCurrentWeather,
     getLocation,
-    searchLocalEvents
+    searchLocalEvents,
+    getTimeBasedSuggestions
   };
   
   async function agent(userInput) {
     messages.push({
       role: "user",
       content: userInput,
+    });
+
+    // Add current time to the context
+    const currentTime = new Date().toISOString();
+    messages.push({
+      role: "system",
+      content: `Current time is ${currentTime}`,
     });
 
     for (let i = 0; i < 5; i++) {
@@ -179,7 +249,7 @@ const openai = new OpenAI({
 
  async function main() {
   try {
-    const response = await agent("Please suggest some activities based on my location and the weather.");
+    const response = await agent("Please suggest some activities based on my location, the weather, and the current time.");
     console.log(response);
   } catch (error) {
     console.error("An error occurred:", error);
