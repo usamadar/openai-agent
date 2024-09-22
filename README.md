@@ -29,3 +29,27 @@ This implementation extends the original tutorial by:
 1. Clone the repository
 2. Install dependencies:
 
+   ```
+   npm install
+   ```
+
+3. Create a `.env` file in the root directory and add your API keys:
+
+   ```
+   OPENAI_API_KEY=your_openai_api_key_here
+   TICKETMASTER_API_KEY=your_ticketmaster_api_key_here
+   ```
+
+   Make sure to replace `your_openai_api_key_here` and `your_ticketmaster_api_key_here` with your actual API keys.
+
+4. Ensure that the `.env` file is added to your `.gitignore` to keep your API keys secure.
+
+## Usage
+
+Run the script with:
+
+```
+node activities.js
+```
+
+The agent will prompt for activity suggestions based on your location, the weather, and local events.
